@@ -1,3 +1,10 @@
+Did some changes:
+1. Modify No Wild Encounter - Press Start + A = ON and Start + B = OFF;
+2. Added No Forced Trainer Battles - Press Start + R = ON and Start + L = OFF;
+3. Included fix SOS counter by nyok0 - https://github.com/AnalogMan151/sumoCheatMenu/pull/56
+
+Note: only tested on my old3ds with Pokemon Sun v1.2
+
 # Pokémon Sun & Moon Cheat Plugin
 ## A cheats plugin for NTR CFW
 
