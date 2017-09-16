@@ -9,53 +9,89 @@
  *                              *
  ********************************/
 
-int shinyChanceValue = 4096;
+ int shinyChanceValue = 4096;
 
 // Battle menu entry
-void    battleMenu(void) {
+ void    battleMenu(void) {
 
     // Creates spoiler and cheat entries
 
     new_spoiler("Party");
-        new_entry_arg("Stat Stages +6", maxBattleStats, 0, MAXBATTLESTATS, TOGGLE);
-        new_entry_arg("Use Z-Moves w/o Z-Crystal", zMoves, 0, ZMOVES, TOGGLE);
-        new_entry_managed("Infinite Z-Moves", infZMoves, INFZMOVES, 0);
-        new_entry_managed("Invincible Party", invincibleParty, INVINCIBLEPARTY, 0);
-        new_line();
+    new_entry_arg("Stat Stages +6", maxBattleStats, 0, MAXBATTLESTATS, TOGGLE);
+    new_entry_arg("Use Z-Moves w/o Z-Crystal", zMoves, 0, ZMOVES, TOGGLE);
+    new_entry_managed("Infinite Z-Moves", infZMoves, INFZMOVES, 0);
+    new_entry_managed("Invincible Party", invincibleParty, INVINCIBLEPARTY, 0);
+    new_line();
     exit_spoiler();
     new_spoiler("Opponent");
-        new_entry_arg_note("No Wild Encounters", "Hold START to temporarily enable encounters", noEncounters, 0, NOENCOUNTERS, TOGGLE);
-        new_entry("100% Capture Rate", catch100);
-        new_entry_arg_note("View Opponent's Info", "Press START to activate", showOpponentInfo, 0, SHOWOPPONENTINFO, TOGGLE);
-        new_entry_managed("1-Hit KO", oneHitKO, ONEHITKO, 0);
-        new_entry_managed("Shiny Chance: XXXXXX", decreaseShinyChance, DECREASESHINYCHANCE, AUTO_DISABLE);
-        new_line();
+    new_entry_managed_note("No Wild Encounters", "Press START + A = ON\nPRESS START + B = OFF", noEncounters, NOENCOUNTERS, 0);
+    new_entry_managed_note("No Forced Trainer Battles", "Press START + R = ON\nPRESS START + L = OFF", noForcedTrainerBattles, NOFORCEDTRAINERBATTLES, 0);
+    new_entry("100% Capture Rate", catch100);
+    new_entry_arg_note("View Opponent's Info", "Press START to activate", showOpponentInfo, 0, SHOWOPPONENTINFO, TOGGLE);
+    new_entry_managed("1-Hit KO", oneHitKO, ONEHITKO, 0);
+    new_entry_managed("Shiny Chance: XXXXXX", decreaseShinyChance, DECREASESHINYCHANCE, AUTO_DISABLE);
+    new_line();
     exit_spoiler();
     updateShiny();
 }
 
-// No wild encounters unless START is held
-void    noEncounters(u32 state) {
+// No wild encounters - Press START + A = ON and START + B = OFF
+void    noEncounters(void) {
     static const u32 offset[] =
     {
         0x0807A28C,
         0x0807A5E8,
         0x0807A5E8
     };
-    if (state) {
-        if (!checkAddress(offset[gameVer]))
-            return;
-        else {
+    static bool active = false;
+    if(is_pressed(BUTTON_ST) && is_pressed(BUTTON_A)){
+        active = true;
+    }
+    if(is_pressed(BUTTON_ST) && is_pressed(BUTTON_B)){
+        active = false;
+    }
+    if (checkAddress(offset[gameVer])){
+        if (READU32(offset[gameVer]) == 0xE3A00064) {
+            if (active)
+                WRITEU32(offset[gameVer] - 0x8, 0xE3A09000);
+            else
+                WRITEU32(offset[gameVer] - 0x8, 0xE3A09064);
+        }
+    }
+}
 
-            if (READU32(offset[gameVer]) == 0xE3A00064) {
-                if (is_pressed(BUTTON_ST))
-                    WRITEU32(offset[gameVer] - 0x8, 0xE3A09064);
-                else
-                    WRITEU32(offset[gameVer] - 0x8, 0xE3A09000);
+// by ymyn - Fort42 - Press START + R = ON and START + L = OFF
+void    noForcedTrainerBattles(void) {
+    static const u32 offset[] =
+    {
+        0x0802EA54,
+        0x0802EBF0,
+        0x0802EBF0
+    };
+    static bool active = false;
+    if(is_pressed(BUTTON_ST) && is_pressed(BUTTON_R)){
+        active = true;
+    }
+    if(is_pressed(BUTTON_ST) && is_pressed(BUTTON_L)){
+        active = false;
+    }
+    if (checkAddress(offset[gameVer])){
+        if(active){
+           if (gameVer == 0 && READU32(offset[gameVer]) == 0xEB00FA0B) {
+                WRITEU32(offset[gameVer], 0xE3A00001);
+            } 
+            if (gameVer != 0 && READU32(offset[gameVer]) == 0xEB00FA2F) {
+                WRITEU32(offset[gameVer], 0xE3A00001);
+            }
+        } else {
+            if (gameVer == 0 && READU32(offset[gameVer]) == 0xE3A00001) {
+                WRITEU32(offset[gameVer], 0xEB00FA0B);
+            } 
+            if (gameVer != 0 && READU32(offset[gameVer]) == 0xE3A00001) {
+                WRITEU32(offset[gameVer], 0xEB00FA2F);
             }
         }
-    } else {
-        WRITEU32(offset[gameVer] - 0x8, 0xE3A09064);
+
     }
 }
 
@@ -267,7 +303,7 @@ void    oneHitKO(void) {
 
             // If actual HP is 0, make displayed HP match
             } else if (READU16(offset[2] + (i * 0x330)) == 0)
-                WRITEU16(offset[1] + (i * 0x330), 0);
+            WRITEU16(offset[1] + (i * 0x330), 0);
         }
     }
 }

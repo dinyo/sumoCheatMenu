@@ -70,7 +70,8 @@ enum {
     DECREASESHINYCHANCE,
     INFZMOVES,
     ONEHITKO,
-    INVINCIBLEPARTY
+    INVINCIBLEPARTY,
+    NOFORCEDTRAINERBATTLES
 } e_identifiers;
 
 // Array of forms
@@ -148,7 +149,8 @@ void    fixMakeupBag(void);
 
 // Battle Modifiers
 void    battleMenu(void);
-void    noEncounters(u32 state);
+void    noEncounters(void);
+void    noForcedTrainerBattles(void);
 void    alwaysCritical(void);
 void    showOpponentInfoOld(void);
 void    showOpponentInfo(u32 state);
